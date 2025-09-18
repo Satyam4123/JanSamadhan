@@ -50,7 +50,7 @@ const Sidebar = () => {
             { name: "My Profile", path: "/MyProfile" },
             { name: "Task Management", path: "/TaskManager" },
             { name: "Disaster Management", path: "/DisasterManagement" },
-            { name: "Jharkhand Complaint Projects", path: "/Expense" },
+            { name: "Jharkhand Complaint Projects", path: "/projects" },
             { name: "Meeting Scheduling", path: "/Meeting" },
             { name: "Notifications", path: "/Notifications" },
             { name: "Seminar/Workshops", path: "/Seminar" },
