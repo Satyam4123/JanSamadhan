@@ -1,239 +1,131 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useState, useRef } from 'react';
+import { MapContainer, TileLayer, GeoJSON, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import markerIconPng from 'leaflet/dist/images/marker-icon.png';
-import markerShadowPng from 'leaflet/dist/images/marker-shadow.png';
+import * as turf from '@turf/turf';
+import lucknowWards from '../GIS_pages/data/Lucknow Ward Boundary.json';
 
-const customMarkerIcon = new L.Icon({
-  iconUrl: markerIconPng,
-  shadowUrl: markerShadowPng,
-  iconSize: [20, 32],
-  iconAnchor: [10, 32],
+// Red marker icon
+const redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [32, 32],
 });
 
-const Geotagging = () => {
-  const [projectLocations, setProjectLocations] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [projectName, setProjectName] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
+// Sample complaints
+const complaints = [
+  { lat: 26.8125, lng: 80.9123, description: 'Water leakage reported' },
+  { lat: 26.8135, lng: 80.9135, description: 'Blocked sewage system' },
+  { lat: 26.8140, lng: 80.9140, description: 'Street light not working' },
+  { lat: 26.8085, lng: 80.9250, description: 'Unauthorized construction reported' },
+  { lat: 26.8060, lng: 80.9270, description: 'Garbage dumping in public area' },
+  { lat: 26.8055, lng: 80.9245, description: 'Noise pollution complaint' },
+];
 
-  const predefinedProjects = [
-    { name: 'Gas Pipeline Project', coordinates: [18.5204, 73.8567] },
-    { name: 'Road Construction', coordinates: [18.529, 73.844] },
-    { name: 'Water Pipeline', coordinates: [18.51, 73.86] },
-    { name: 'School Renovation', coordinates: [18.530, 73.865] },
-  ];
+const GIS = () => {
+  const [selectedWard, setSelectedWard] = useState(null);
+  const [filteredComplaints, setFilteredComplaints] = useState([]);
+  const mapRef = useRef();
 
-  useEffect(() => {
-    setProjectLocations(predefinedProjects);
-  }, []);
+  const geoJsonStyle = (feature) =>
+    selectedWard && feature.properties.id === selectedWard.properties.id
+      ? {
+          color: '#FF0000',
+          weight: 3,
+          fillColor: '#FFAAAA',
+          fillOpacity: 0.5,
+        }
+      : {
+          color: '#007BFF',
+          weight: 2,
+          fillColor: '#00BFFF',
+          fillOpacity: 0.3,
+        };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (projectName && lat && lng) {
-      const newProject = {
-        name: projectName,
-        coordinates: [parseFloat(lat), parseFloat(lng)],
-      };
-      setProjectLocations([...projectLocations, newProject]);
-      setProjectName('');
-      setLat('');
-      setLng('');
-      setIsModalOpen(false);
+  const handleWardClick = (feature) => {
+    const map = mapRef.current;
+    const coordinates = feature.geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
+
+    if (map) {
+      map.fitBounds(coordinates);
     }
-  };
 
-  const handleDeleteProject = (indexToDelete) => {
-    setProjectLocations(projectLocations.filter((_, index) => index !== indexToDelete));
+    const wardPolygon = turf.polygon(feature.geometry.coordinates);
+    const complaintsInWard = complaints.filter((complaint) => {
+      const point = turf.point([complaint.lng, complaint.lat]);
+      return turf.booleanPointInPolygon(point, wardPolygon);
+    });
+
+    setSelectedWard(feature);
+    setFilteredComplaints(complaintsInWard);
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4 relative">
-      <div className={`max-w-6xl w-full bg-white shadow-md rounded-lg p-8 mb-4 ${isFullscreen ? 'hidden' : ''}`}>
-        <h1 className="text-2xl font-bold mb-4 text-center">Geo Tagging System</h1>
+    <div className="bg-gray-100 min-h-screen flex p-4">
+      
+      {/* Left side: Map */}
+      <div className="flex-1 bg-white shadow-md rounded-lg p-4">
+        <h1 className="text-2xl font-bold mb-4 text-center">Geo Tagging Map</h1>
 
-        {/* Buttons: Add New Project and Zoom to Fullscreen */}
-        <div className="flex justify-center gap-4 mb-4">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-500 text-white py-2 px-4 rounded-md"
-          >
-            Add New Project
-          </button>
-          <button
-            onClick={() => setIsFullscreen(true)}
-            className="bg-green-500 text-white py-2 px-4 rounded-md"
-          >
-            Zoom to Fullscreen
-          </button>
-        </div>
+        <MapContainer
+          center={[26.8467, 80.9462]}
+          zoom={12}
+          style={{ height: '600px', width: '100%' }}
+          whenCreated={(mapInstance) => (mapRef.current = mapInstance)}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&copy; OpenStreetMap contributors"
+          />
 
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full z-60">
-              <h2 className="text-xl font-semibold mb-4">Add New Project</h2>
-              <form onSubmit={handleFormSubmit} className="space-y-4">
-                <div>
-                  <label className="block mb-1 font-semibold" htmlFor="projectName">
-                    Project Name
-                  </label>
-                  <input
-                    id="projectName"
-                    type="text"
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                    placeholder="Enter project name"
-                    className="w-full p-2 border rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-semibold" htmlFor="latitude">
-                    Latitude
-                  </label>
-                  <input
-                    id="latitude"
-                    type="number"
-                    value={lat}
-                    onChange={(e) => setLat(e.target.value)}
-                    placeholder="Enter latitude"
-                    className="w-full p-2 border rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-semibold" htmlFor="longitude">
-                    Longitude
-                  </label>
-                  <input
-                    id="longitude"
-                    type="number"
-                    value={lng}
-                    onChange={(e) => setLng(e.target.value)}
-                    placeholder="Enter longitude"
-                    className="w-full p-2 border rounded-md"
-                    required
-                  />
-                </div>
-                <div className="flex justify-between items-center">
-                  <button
-                    type="submit"
-                    className="bg-green-500 text-white py-2 px-4 rounded-md"
-                  >
-                    Add Project
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="bg-red-500 text-white py-2 px-4 rounded-md"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+          <GeoJSON
+            data={lucknowWards}
+            style={geoJsonStyle}
+            onEachFeature={(feature, layer) => {
+              layer.on({
+                click: () => handleWardClick(feature),
+              });
+              layer.bindPopup(
+                `<strong>Ward Name:</strong> ${feature.properties['Ward Name']}<br/>
+                 <strong>Ward Num:</strong> ${feature.properties['Ward Num']}`
+              );
+            }}
+          />
 
-        <div className="grid grid-cols-5 gap-4">
-          {/* Map View - 60% */}
-          <div className="col-span-3 relative z-10 h-96 w-full bg-white rounded-md shadow-md">
-            <MapContainer
-              center={[18.5204, 73.8567]}
-              zoom={13}
-              className="h-full w-full rounded-md"
+          {filteredComplaints.map((complaint, idx) => (
+            <Marker
+              key={idx}
+              position={[complaint.lat, complaint.lng]}
+              icon={redIcon}
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-              />
-              {projectLocations.map((project, index) => (
-                <Marker
-                  key={index}
-                  position={project.coordinates}
-                  icon={customMarkerIcon}
-                >
-                  <Popup>
-                    <span>{project.name}</span>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
-          </div>
-
-          {/* Project List View - 40% */}
-          <div className="col-span-2 bg-white rounded-md shadow-md h-96 overflow-hidden">
-            {/* Fixed Header */}
-            <div className="bg-white z-10 border-b p-6">
-              <h1 className="text-2xl font-bold">Project List</h1>
-            </div>
-            {/* Scrollable List */}
-            <div className="overflow-y-auto h-full">
-              <ul className="space-y-4 p-6">
-                {projectLocations.map((project, index) => (
-                  <li
-                    key={index}
-                    className="border p-4 rounded-md flex justify-between items-center"
-                  >
-                    <div>
-                      <p className="font-bold text-lg">{project.name}</p>
-                      <p>Latitude: {project.coordinates[0]}</p>
-                      <p>Longitude: {project.coordinates[1]}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteProject(index)}
-                      className="bg-red-500 text-white py-1 px-3 rounded-md"
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
+              <Popup>{complaint.description}</Popup>
+            </Marker>
+          ))}
+        </MapContainer>
       </div>
 
-      {/* Fullscreen Map */}
-      {isFullscreen && (
-        <div className="fixed inset-0 z-50 bg-white">
-          <MapContainer
-            center={[18.5204, 73.8567]}
-            zoom={13}
-            className="h-full w-full"
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-            />
-            {projectLocations.map((project, index) => (
-              <Marker
-                key={index}
-                position={project.coordinates}
-                icon={customMarkerIcon}
-              >
-                <Popup>
-                  <span>{project.name}</span>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-          {/* Always visible Back Button */}
-          <button
-            onClick={() => setIsFullscreen(false)}
-            className="fixed top-4 right-4 bg-red-500 text-white py-2 px-4 rounded-md z-50"
-          >
-            Back
-          </button>
-        </div>
-      )}
+      {/* Right side: Complaints List */}
+      <div className="w-1/3 bg-white shadow-md rounded-lg p-4 ml-4 overflow-y-auto" style={{ maxHeight: '600px' }}>
+        <h2 className="text-xl font-semibold mb-4">Complaints for Selected Ward</h2>
+
+        {!selectedWard ? (
+          <p>Please click on a ward to view complaints.</p>
+        ) : filteredComplaints.length === 0 ? (
+          <p>No complaints found in this ward.</p>
+        ) : (
+          filteredComplaints.map((complaint, idx) => (
+            <div key={idx} className="border p-3 rounded-md mb-3 bg-red-100">
+              <p><strong>Description:</strong> {complaint.description}</p>
+              <p><strong>Lat:</strong> {complaint.lat}, <strong>Lng:</strong> {complaint.lng}</p>
+            </div>
+          ))
+        )}
+      </div>
+
     </div>
   );
 };
 
-export default Geotagging;
+export default GIS;
