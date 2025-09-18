@@ -3,28 +3,30 @@ import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tool
 import { Bell } from 'lucide-react';
 import Navbar from './Navbar';
 
+// Monthly Income vs Expense for Ranchi Road Repair Project
 const monthlyData = [
-  { name: 'Jan', income: 4000, expense: 2400 },
-  { name: 'Feb', income: 3000, expense: 1398 },
-  { name: 'Mar', income: 2000, expense: 9800 },
-  { name: 'Apr', income: 2780, expense: 3908 },
-  { name: 'May', income: 1890, expense: 4800 },
-  { name: 'Jun', income: 2390, expense: 3800 },
-  { name: 'Jul', income: 3490, expense: 4300 },
-  { name: 'Aug', income: 4000, expense: 2400 },
-  { name: 'Sep', income: 3000, expense: 1398 },
-  { name: 'Oct', income: 2000, expense: 9800 },
-  { name: 'Nov', income: 2780, expense: 3908 },
-  { name: 'Dec', income: 1890, expense: 4800 },
+  { name: 'Jan', income: 12000, expense: 8000 },
+  { name: 'Feb', income: 10000, expense: 7000 },
+  { name: 'Mar', income: 9000, expense: 9500 },
+  { name: 'Apr', income: 11000, expense: 8500 },
+  { name: 'May', income: 9500, expense: 10000 },
+  { name: 'Jun', income: 11500, expense: 9000 },
+  { name: 'Jul', income: 14000, expense: 11000 },
+  { name: 'Aug', income: 13000, expense: 12000 },
+  { name: 'Sep', income: 12500, expense: 10000 },
+  { name: 'Oct', income: 13500, expense: 11500 },
+  { name: 'Nov', income: 14500, expense: 12000 },
+  { name: 'Dec', income: 15000, expense: 13000 },
 ];
 
+// Expense breakdown for road repair
 const expenseData = [
-  { name: 'Housing', value: 35 },
-  { name: 'Transportation', value: 20 },
-  { name: 'Food', value: 15 },
-  { name: 'Utilities', value: 10 },
-  { name: 'Insurance', value: 10 },
-  { name: 'Other', value: 10 },
+  { name: 'Raw Materials (Cement, Asphalt)', value: 40 },
+  { name: 'Labor & Workforce', value: 25 },
+  { name: 'Machinery & Equipment', value: 15 },
+  { name: 'Transportation', value: 10 },
+  { name: 'Administrative Costs', value: 5 },
+  { name: 'Other', value: 5 },
 ];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
@@ -41,14 +43,20 @@ const Header = () => (
 const StatCard = ({ label, value, change, color }) => (
   <div className={`bg-${color}-100 p-4 rounded-lg`}>
     <p className="text-sm text-gray-600">{label}</p>
-    <p className="text-2xl font-semibold">${value}</p>
+    <p className="text-2xl font-semibold">₹{value}</p>
     <div className="flex items-center">
       <span className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
         {change > 0 ? '↑' : '↓'} {Math.abs(change)}%
       </span>
       <ResponsiveContainer width="50%" height={20}>
         <LineChart data={monthlyData.slice(-5)}>
-          <Line type="monotone" dataKey={label === "Total expense" ? "expense" : "income"} stroke={change > 0 ? "#10B981" : "#EF4444"} strokeWidth={2} dot={false} />
+          <Line
+            type="monotone"
+            dataKey={label === "Total expense" ? "expense" : "income"}
+            stroke={change > 0 ? "#10B981" : "#EF4444"}
+            strokeWidth={2}
+            dot={false}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -65,19 +73,19 @@ const Expense = () => {
           <Header />
           <main className="p-6">
             <div className="mb-6">
-              <h2 className="text-lg font-semibold mb-2">Navi Mumbai International Airport</h2>
-              <p className="text-sm text-gray-600">Let's manage & analyse expenditure</p>
+              <h2 className="text-lg font-semibold mb-2">Ranchi Road Repair Project</h2>
+              <p className="text-sm text-gray-600">Tracking & analysing project expenditure</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <StatCard label="Total revenue" value="320,000" change={8.5} color="blue" />
-              <StatCard label="Total expense" value="240,000" change={-10.2} color="red" />
-              <StatCard label="Total profit" value="160,000" change={16.4} color="green" />
+              <StatCard label="Total budget allocated" value="50,00,000" change={12.5} color="blue" />
+              <StatCard label="Total expense" value="32,40,000" change={-8.3} color="red" />
+              <StatCard label="Remaining funds" value="17,60,000" change={15.2} color="green" />
             </div>
 
             <div className="bg-white p-4 rounded-lg mb-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Analysis</h3>
+                <h3 className="text-lg font-semibold">Monthly Analysis</h3>
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-1"></div>
@@ -88,8 +96,8 @@ const Expense = () => {
                     <span className="text-sm">Expense</span>
                   </div>
                   <select className="bg-gray-100 text-sm p-1 rounded">
-                    <option>2022</option>
                     <option>2023</option>
+                    <option>2024</option>
                   </select>
                 </div>
               </div>
@@ -112,7 +120,7 @@ const Expense = () => {
                 <thead>
                   <tr className="text-gray-600">
                     <th className="pb-2">Transaction</th>
-                    <th className="pb-2">Type</th>
+                    <th className="pb-2">Category</th>
                     <th className="pb-2">Amount</th>
                     <th className="pb-2">Date</th>
                     <th className="pb-2">Status</th>
@@ -122,38 +130,38 @@ const Expense = () => {
                   <tr>
                     <td className="py-2 flex items-center">
                       <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                        <span className="text-green-600 font-bold">U</span>
+                        <span className="text-green-600 font-bold">C</span>
                       </div>
-                      Land
+                      Cement Purchase
                     </td>
-                    <td>Housing</td>
-                    <td>$150.00</td>
-                    <td>14 Aug, 2023</td>
-                    <td className="text-green-600">Credited</td>
+                    <td>Raw Materials</td>
+                    <td>₹1,20,000</td>
+                    <td>12 Aug, 2024</td>
+                    <td className="text-red-600">Debited</td>
                   </tr>
                   <tr>
                     <td className="py-2 flex items-center">
                       <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
-                        <span className="text-red-600 font-bold">N</span>
+                        <span className="text-red-600 font-bold">L</span>
                       </div>
-                      Runway
+                      Labor Wages
                     </td>
-                    <td>Roads</td>
-                    <td>$60.00</td>
-                    <td>10 Aug, 2023</td>
+                    <td>Workforce</td>
+                    <td>₹80,000</td>
+                    <td>18 Aug, 2024</td>
                     <td className="text-red-600">Debited</td>
                   </tr>
                   <tr>
                     <td className="py-2 flex items-center">
                       <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                        <span className="text-green-600 font-bold">S</span>
+                        <span className="text-green-600 font-bold">T</span>
                       </div>
-                      Pipelines
+                      Govt Grant
                     </td>
-                    <td>Waters</td>
-                    <td>$10.00</td>
-                    <td>29 July, 2023</td>
-                    <td className="text-red-600">Debited</td>
+                    <td>Funding</td>
+                    <td>₹2,00,000</td>
+                    <td>20 Aug, 2024</td>
+                    <td className="text-green-600">Credited</td>
                   </tr>
                 </tbody>
               </table>
@@ -169,7 +177,7 @@ const Expense = () => {
             <p className="text-sm mb-2">Roads & Transport</p>
             <p className="text-lg mb-2">Investment</p>
             <div className="flex justify-between items-center">
-              <p className="text-sm">$423,007</p>
+              <p className="text-sm">₹4,23,007</p>
             </div>
           </div>
 
@@ -178,30 +186,30 @@ const Expense = () => {
             <div>
               <div className="flex justify-between items-center mb-1">
                 <div className="flex items-center">
-                  <span className="mr-2">🚗</span>
-                  <p>New Runway</p>
+                  <span className="mr-2">🛣️</span>
+                  <p>Road Resurfacing</p>
                 </div>
                 <button>•••</button>
               </div>
-              <p className="text-sm text-gray-600 mb-1">Target: $20,000</p>
+              <p className="text-sm text-gray-600 mb-1">Target: ₹20,00,000</p>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '45%' }}></div>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Saving: $17,563</p>
+              <p className="text-sm text-gray-600 mt-1">Saving: ₹9,00,000</p>
             </div>
             <div>
               <div className="flex justify-between items-center mb-1">
                 <div className="flex items-center">
-                  <span className="mr-2">🏠</span>
-                  <p>New Terminal</p>
+                  <span className="mr-2">🚧</span>
+                  <p>Bridge Repair</p>
                 </div>
                 <button>•••</button>
               </div>
-              <p className="text-sm text-gray-600 mb-1">Target: $150,000</p>
+              <p className="text-sm text-gray-600 mb-1">Target: ₹15,00,000</p>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '60%' }}></div>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Saving: $19,759</p>
+              <p className="text-sm text-gray-600 mt-1">Saving: ₹9,50,000</p>
             </div>
           </div>
 
